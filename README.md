@@ -1,4 +1,4 @@
-```markdown
+
 # TLDR: AI-Powered README Generator [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://example.com/build) [![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://example.com/version) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 `tldr` is a CLI tool that leverages LLMs to automatically generate comprehensive README.md files for your projects, using code analysis and Retrieval-Augmented Generation (RAG).
@@ -316,4 +316,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Third-party dependencies and their licenses:**
 
 This project uses several third-party dependencies, each with its own license. Please refer to the `Cargo.toml` file for a complete list of dependencies and their respective licenses.
-```
