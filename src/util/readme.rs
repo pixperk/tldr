@@ -8,7 +8,8 @@ use std::env;
 pub async fn generate(
     path: PathBuf, 
     provider: LlmProvider, 
-    api_key: Option<String>
+    api_key: Option<String>,
+    streaming: bool
 ) -> Result<(), Box<dyn std::error::Error>> {
     let chunks = collect_code_chunks(&path);
     let out_path = path.join("README.md");
@@ -33,12 +34,16 @@ pub async fn generate(
         LlmProvider::OpenAI => "OpenAI",
     };
     
-    println!("🚀 Generating README with {}...", provider_name);
-    let readme_content = generator.generate_readme_fast(&chunks).await?;
-    
-    fs::write(&out_path, readme_content)?;
-    
-    println!("🎉 README.md generated successfully at: {}", out_path.display());
+    // Use streaming mode when flag is present, otherwise use fast mode
+    if streaming {
+        println!("🚀 Generating README with {} (streaming mode)...", provider_name);
+        generator.generate_readme_streaming(&chunks, &out_path).await?;
+    } else {
+        println!("🚀 Generating README with {} (fast mode)...", provider_name);
+        let readme_content = generator.generate_readme_fast(&chunks).await?;
+        fs::write(&out_path, readme_content)?;
+        println!("🎉 README.md generated successfully at: {}", out_path.display());
+    }
     
     Ok(())
 }

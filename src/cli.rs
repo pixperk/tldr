@@ -23,6 +23,10 @@ pub enum Commands {
         /// API key for the selected provider
         #[arg(short, long)]
         api_key: Option<String>,
+        
+        /// Use streaming mode to write README sections as they are generated
+        #[arg(short, long)]
+        streaming: bool,
     }
 }
 

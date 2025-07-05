@@ -1,9 +1,9 @@
 pub mod client;
 pub mod prompt;
-pub mod llm_speed;
+pub mod gemini;
 pub mod openai;
 pub mod provider;
 
-pub use llm_speed::SpeedOptimizedGenerator;
+pub use gemini::SpeedOptimizedGenerator;
 pub use openai::OpenAiGenerator;
 pub use provider::LlmGenerator;
