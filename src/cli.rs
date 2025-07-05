@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -15,5 +15,21 @@ pub enum Commands {
         /// Path to project dir
         #[arg(default_value = ".")]
         path: PathBuf,
+        
+        /// LLM provider to use
+        #[arg(short, long, default_value = "gemini")]
+        provider: LlmProvider,
+        
+        /// API key for the selected provider
+        #[arg(short, long)]
+        api_key: Option<String>,
     }
+}
+
+#[derive(Clone, ValueEnum)]
+pub enum LlmProvider {
+    /// Google Gemini
+    Gemini,
+    /// OpenAI GPT
+    OpenAI,
 }

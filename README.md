@@ -1,192 +1,204 @@
-# tldr - Gemini-Powered README Generator ✨
+```markdown
+# tldr-gen: Generate Documentation with LLMs 📚✨
 
+[![Build Status](https://img.shields.io/github/actions/workflow/status/your-username/tldr-gen/main.yml?branch=main)](https://github.com/your-username/tldr-gen/actions)
+[![Version](https://img.shields.io/crates/v/tldr-gen)](https://crates.io/crates/tldr-gen)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`tldr` automatically generates README.md files using Gemini, embeddings, and RAG.
+`tldr-gen` automatically generates documentation from your codebase using Large Language Models (LLMs).
 
 ## Overview
 
-`tldr` is a command-line tool designed to streamline the process of creating high-quality README files for Rust projects. By leveraging Google's Gemini 2.0 LLM, code embeddings, and Retrieval Augmented Generation (RAG), `tldr` automates documentation, saving developers time and ensuring consistent, comprehensive project information.
+`tldr-gen` simplifies documentation by leveraging LLMs. Instead of manually writing documentation, this tool analyzes your codebase and automatically creates a `README.md` file, saving developers time and ensuring documentation stays up-to-date with code changes.
 
-This tool targets Rust developers who want to easily generate a README.md file for their project with minimal manual effort. It's particularly useful for projects lacking initial documentation, or for keeping existing READMEs up-to-date as the codebase evolves.
+**Target Audience:**
 
-`tldr` uses Rust, the Clap crate for CLI argument parsing, the Dotenvy crate for reading the .env files, the Requests crate for sending HTTP requests to Gemini, the Serde crate for serialization, and the Walkdir crate to traverse through the file system to collect code chunks. The main architectural approach is to read files from a project, collect them into code chunks and then send those code chunks to the Gemini LLM to generate the README.md content.
+*   Software developers
+*   Technical writers
+*   Open-source maintainers
 
-`tldr` stands out by combining cutting-edge LLM technology with code-aware embeddings to create more insightful and relevant documentation, compared to simpler template-based or manual approaches.
+**Key Technologies:**
+
+*   Rust
+*   `clap` for CLI argument parsing
+*   `reqwest` for HTTP requests to LLM APIs
+*   `dotenvy` for environment variable loading
+
+**What Makes it Unique:**
+
+`tldr-gen` focuses on ease of use and integration. A single command generates a comprehensive README, reducing documentation friction. It's designed to be extensible and adaptable to different LLM providers and codebase structures, though currently relies on specific assumptions about LLM API key configuration through environment variables.
 
 ## Features
 
-### Core Functionality
-
-*   **Automated README Generation:** Automatically creates `README.md` files based on your codebase.
-*   **Retrieval Augmented Generation (RAG):** Employs RAG to fetch relevant code snippets and context, ensuring comprehensive documentation.
-*   **Embeddings (Planned):** Uses embeddings of code to capture semantic meaning and improve documentation accuracy. (Currently a placeholder).
-*   **LLM Powered:** Uses Google's Gemini 2.0 to generate high-quality, context-aware documentation.
-
-### User Experience
-*   **Simple CLI:** Easy-to-use command-line interface with intuitive options.
-*   **Progress Indicators:** Displays progress updates during code scanning and documentation generation.
-*   **Configurable Project Path**: Allows specifying a custom project path for document generation.
-
-### Technology
-*   **Extensive Code Extension Support**: Supports a wide array of code extensions (175+).
-*   **MIT License:** Open-source and freely available for use and modification.
+*   **Automated README Generation:** Analyzes codebase and generates a `README.md` file.
+*   **CLI Interface:** Simple command-line interface for easy usage.
+*   **LLM Powered:** Uses Large Language Models to understand and document your code.
+*   **Customizable Path:** Specify the project directory to generate documentation for.
+*   **Error Handling:** Provides informative error messages for troubleshooting.
 
 ## Quick Start
 
-Generate a `README.md` for your current directory with:
+This example shows how to generate a `README.md` file for your project.
 
-```bash
-tldr readme
-```
+1.  **Install `tldr-gen`** (See Installation section below).
 
-Expected Output:
+2.  **Set your LLM API key** as an environment variable (e.g., `OPENAI_API_KEY`). This is required for the LLM to function correctly.
 
-```text
-🔍 Scanning codebase...
-📄 Processing: src\main.rs
-📄 Processing: src\rag.rs
-📄 Processing: src\util\mod.rs
-📄 Processing: src\util\ext.rs
-📄 Processing: src\util\readme.rs
-📄 Processing: src\llm\mod.rs
-📄 Processing: src\llm\client.rs
-📄 Processing: src\llm\gemini.rs
-📄 Processing: src\llm\prompt.rs
-📄 Processing: src\cli.rs
-✅ Processed 10 files, found 10 code files
-Generating README with Gemini AI...
-Processing response...
-✅ README.md generated successfully at: ./README.md
-```
+3.  **Run the command:**
+
+    ```bash
+    tldr readme
+    ```
+
+    This will generate a `README.md` file in your current directory.
 
 ## Installation
 
-Ensure you have Rust and Cargo installed on your system. Then, install `tldr` from crates.io:
-
-```bash
-cargo install tldr
-```
-
-### System Requirements
-
-*   Rust toolchain (stable version recommended)
-*   Cargo package manager
-
 ### Prerequisites
 
-Before using `tldr`, ensure you have:
+*   Rust toolchain (install via [rustup](https://rustup.rs/))
 
-*   A Google Cloud project with the Gemini API enabled.
-*   A Gemini API key. Set this as an environment variable named `GEMINI_API_KEY`.
-*   (Optional) A `.env` file at the root of your project. This file can be used to set the `GEMINI_API_KEY` if you don't want to set it globally.
+### Install via Cargo
+
+```bash
+cargo install tldr-gen
+```
+
+This installs the `tldr-gen` executable to your `~/.cargo/bin` directory. Ensure this directory is in your `PATH`.
+
+### Verify Installation
+
+```bash
+tldr --version
+```
+
+This should print the installed version of `tldr-gen`.
 
 ## Usage
 
-### Generating README.md
+The `tldr-gen` CLI provides a simple interface for generating README files.
 
-To generate a `README.md` file in your project directory, navigate to the directory in your terminal and run:
+### Generating a README
+
+```bash
+tldr readme --path <project_directory>
+```
+
+*   `readme`:  Specifies the "readme" subcommand for README generation.
+*   `--path <project_directory>`: Specifies the path to the project directory. Defaults to the current directory (`.`) if not provided.
+
+**Examples:**
+
+To generate a `README.md` file for a project in the `my_project` directory:
+
+```bash
+tldr readme --path my_project
+```
+
+To generate the README in the current directory:
 
 ```bash
 tldr readme
 ```
 
-To specify a different project path, use the `--path` option:
+**Important:**
 
-```bash
-tldr readme --path /path/to/your/project
-```
-
-### Command-Line Options
-
-The `tldr readme` subcommand accepts the following options:
-
-*   `--path <PATH>`: Specifies the path to the project directory. Defaults to the current directory (`.`).
+*   Ensure your LLM API key is set as an environment variable (e.g., `OPENAI_API_KEY`). `tldr-gen` relies on this environment variable being set.
+*   The generated `README.md` file overwrites any existing file with the same name in the specified directory.
 
 ## Architecture
 
-`tldr` operates using a Retrieval Augmented Generation (RAG) architecture. The key components are:
+`tldr-gen` operates with the following components:
 
-1.  **CLI Interface (cli.rs):** Handles user input and command parsing using the `clap` crate.
-2.  **Code Chunk Collection (rag.rs):** Scans the project directory, identifies code files based on their extension (using ext.rs), and extracts their content.  This forms the "chunks".
-3.  **Embedding (embed.rs):** Creates vector embeddings of the code chunks (Placeholder). This is intended to capture the semantic meaning of the code.
-4.  **LLM Interaction (llm/):**
-    *   **LLM Client (llm/client.rs):** Manages communication with the Gemini API using the `reqwest` crate.
-    *   **Gemini Integration (llm/gemini.rs):** Formats the code chunks and a system prompt (prompt.rs) into a prompt for the Gemini model, sends the request, and processes the response.
-5.  **README Generation (util/readme.rs):** Takes the generated README content from Gemini and saves it to a `README.md` file in the project directory.
+1.  **CLI Parser:** The `cli.rs` module uses `clap` to parse command-line arguments.
+2.  **Project Analyzer:** (Currently implicit) Analyzes the code within the given path. This part of the project is currently underdeveloped, but the tool has the potential to be expanded by extracting relevant code metadata.
+3.  **LLM Client:** The `llm/client.rs` module handles communication with the LLM API. It initializes a `reqwest` HTTP client and manages the API key.
+4.  **README Generator:** (Within `src/util/readme.rs` - inferred)  Constructs the `README.md` content based on the analysis and LLM responses.
 
-The data flow is as follows:
+The overall process involves:
 
-`CLI -> Code Chunk Collection -> Embedding (TODO) -> LLM Interaction -> README Generation`
+1.  Parsing command-line arguments to get the project path.
+2.  (Future Improvement) Analysing the project's source code.
+3.  Communicating with the configured LLM to generate documentation snippets.
+4.  Combining documentation snippets into a complete `README.md` file and writing it to the project directory.
 
 ## Configuration
 
-### Environment Variables
+`tldr-gen` relies on environment variables for configuration:
 
-| Variable        | Description                                     | Default |
-| --------------- | ----------------------------------------------- | ------- |
-| `GEMINI_API_KEY` | Your Google Gemini API key.  Required for LLM. |         |
+*   `OPENAI_API_KEY`: (Example) This environment variable is crucial; `tldr-gen` expects an LLM API key to be set for documentation generation to work correctly.
+    *   Description: The API key for your LLM provider.
+    *   Default: None (required).
+    *   Example: `sk-your-api-key`
+
+You can set environment variables in your `.env` file or directly in your shell.
+
+```bash
+# .env file
+OPENAI_API_KEY=sk-your-api-key
+```
+
+```bash
+export OPENAI_API_KEY=sk-your-api-key # setting the api key in bash
+```
 
 ## Development
-
-If you'd like to contribute to `tldr`, follow these steps to set up your development environment:
-
-### Prerequisites
-
-*   Rust toolchain (stable)
-*   Git
 
 ### Setup
 
 1.  Clone the repository:
 
     ```bash
-    git clone https://github.com/<your_username>/tldr.git
-    cd tldr
+    git clone https://github.com/your-username/tldr-gen.git
+    cd tldr-gen
     ```
 
-2. Build the project
+2.  Install Rust dependencies:
 
     ```bash
     cargo build
     ```
 
+### Build
+
+```bash
+cargo build
+```
+
 ### Testing
 
-Run tests using:
 ```bash
 cargo test
 ```
 
+### Code Conventions
+
+*   Follow Rust's style guidelines (use `cargo fmt`).
+*   Write clear and concise code.
+*   Add comments to explain complex logic.
+
 ## Performance & Scaling
 
-`tldr`'s performance primarily depends on:
-
-*   **Codebase Size**: Larger codebases take longer to scan.
-*   **LLM API Latency**: Generating the README content depends on the speed of the Gemini API.
-*   **Internet Connection Speed**: A stable and fast internet connection is required for making requests to the Gemini API.
-
-As the tool currently only makes a single API call, the scaling considerations are limited.  Future work may involve parallelizing code chunk processing for larger codebases.
+The performance of `tldr-gen` depends largely on the size of the codebase and the response time of the LLM API. The tool's HTTP client has a timeout of 120 seconds to allow enough time for LLM processing.
 
 ## Troubleshooting
 
-*   **API Errors**: Ensure your `GEMINI_API_KEY` is valid and the Gemini API is enabled in your Google Cloud project.
-*   **Slow Generation:** This is expected due to the LLM processing time.
-*   **Incomplete Documentation:** The quality of the generated README depends on the quality and clarity of the comments and code in your project.
+*   **Error: API Key not found:** Ensure the `OPENAI_API_KEY` environment variable is set correctly.
+*   **Error: Request Timeout:** Check your internet connection and the status of the LLM API.  Consider increasing the timeout duration if necessary.
+*   **Error: Generated README is incomplete/incorrect:** This may indicate a limitation in the LLM's understanding of the code. Consider manually editing the generated README or providing more context to the LLM.
 
-If you encounter any issues, please create an issue in the repository or contact the maintainers.
+For further assistance, create an issue on the [GitHub repository](https://github.com/your-username/tldr-gen/issues).
 
 ## Contributing
 
-Contributions are greatly appreciated! To contribute:
+Contributions are welcome! Please follow these guidelines:
 
 1.  Fork the repository.
 2.  Create a new branch for your feature or bug fix.
-3.  Implement your changes.
+3.  Write tests for your changes.
 4.  Submit a pull request.
 
-Please adhere to the project's code style and contribution guidelines.
-
-## License
+## License & Legal
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
+```

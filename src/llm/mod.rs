@@ -1,5 +1,5 @@
 pub mod client;
-pub mod gemini;
 pub mod prompt;
+pub mod llm_speed;
 
-pub use gemini::generate_readme;
+pub use llm_speed::SpeedOptimizedGenerator;
