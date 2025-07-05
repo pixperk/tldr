@@ -16,8 +16,8 @@ async fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Readme { path } => {
-            if let Err(err) = readme::generate(path).await{
+        Commands::Readme { path, provider, api_key } => {
+            if let Err(err) = readme::generate(path, provider, api_key).await{
                 eprintln!("❌ Error generating README: {}", err);
             };
         }
