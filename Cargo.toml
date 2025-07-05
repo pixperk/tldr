@@ -1,0 +1,15 @@
+[package]
+name = "tldr"
+version = "0.1.0"
+edition = "2024"
+description = "README.md generator powered by Gemini + embeddings + RAG"
+license = "MIT"
+
+[dependencies]
+clap ={ version = "4.5", features = ["derive"] }
+dotenvy = "0.15"
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+walkdir = "2.4"
