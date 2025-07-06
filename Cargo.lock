@@ -1277,7 +1277,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tldr"
+name = "tldrs"
 version = "0.1.0"
 dependencies = [
  "anyhow",

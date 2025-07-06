@@ -1,8 +1,10 @@
 [package]
-name = "tldr"
+name = "tldrs"
 version = "0.1.0"
 edition = "2024"
-description = "README.md generator powered by Gemini + embeddings + RAG"
+description = "README.md generator powered by LLMs and codebase analysis"
+repository = "https://github.com/pixperk/tldrs"
+documentation = "https://github.com/pixperk/tldrs"
 license = "MIT"
 
 [dependencies]

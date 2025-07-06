@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "tldr", about = "Generate docs from codebase using LLMs")]
+#[command(name = "tldrs", about = "Generate docs from codebase using LLMs")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
