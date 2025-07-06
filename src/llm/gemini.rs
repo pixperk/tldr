@@ -46,7 +46,7 @@ impl SpeedOptimizedGenerator {
         &self,
         chunks: &[String],
         output_path: &std::path::Path,
-        _custom_prompt: &str,
+        custom_prompt: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
         use std::io::Write;
         
@@ -69,7 +69,7 @@ impl SpeedOptimizedGenerator {
         pb.set_message("📄 README file created, generating sections...");
 
         let filtered_chunks = self.filter_important_chunks(chunks);
-        self.generate_sections_incrementally(&filtered_chunks, &mut file, &pb).await?;
+        self.generate_sections_incrementally(&filtered_chunks, &mut file, &pb, custom_prompt).await?;
         
         // Write final section combination
         pb.set_message("🔗 Finalizing README structure...");
@@ -192,11 +192,51 @@ impl SpeedOptimizedGenerator {
         Ok(text)
     }
 
+    async fn call_api_with_custom_context(&self, section_prompt: &str, custom_prompt: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let combined_prompt = format!(
+            "Context: {}\n\nTask: {}",
+            custom_prompt,
+            section_prompt
+        );
+
+        let response = self.client.client()
+            .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")
+            .query(&[("key", self.client.api_key())])
+            .header("Content-Type", "application/json")
+            .json(&json!({
+                "contents": [{
+                    "parts": [{
+                        "text": combined_prompt
+                    }]
+                }],
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "maxOutputTokens": 1000
+                }
+            }))
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let error_text = response.text().await?;
+            return Err(format!("Gemini API error: {}", error_text).into());
+        }
+
+        let response_json: serde_json::Value = response.json().await?;
+        
+        if let Some(content) = response_json["candidates"][0]["content"]["parts"][0]["text"].as_str() {
+            Ok(content.trim().to_string())
+        } else {
+            Err("Invalid response format from Gemini API".into())
+        }
+    }
+
     async fn generate_sections_incrementally(
         &self,
         chunks: &[String],
         file: &mut std::fs::File,
         pb: &ProgressBar,
+        custom_prompt: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
         use std::io::Write;
         
@@ -209,7 +249,7 @@ impl SpeedOptimizedGenerator {
             "Generate ONLY a project title in markdown format (# Title). Be concise:\n\n{}",
             &context[..context.len().min(3000)]
         );
-        let title = self.call_api_simple(&title_prompt).await?;
+        let title = self.call_api_with_custom_context(&title_prompt, custom_prompt).await?;
         for line in title.lines() {
             file.write_all(line.as_bytes())?;
             file.write_all("\n".as_bytes())?;
@@ -227,7 +267,7 @@ impl SpeedOptimizedGenerator {
             "Generate ONLY a brief project description (2-3 sentences). No headers:\n\n{}",
             &context[..context.len().min(4000)]
         );
-        let description = self.call_api_simple(&desc_prompt).await?;
+        let description = self.call_api_with_custom_context(&desc_prompt, custom_prompt).await?;
         for sentence in description.split('.') {
             if !sentence.trim().is_empty() {
                 file.write_all(sentence.trim().as_bytes())?;
@@ -251,7 +291,7 @@ impl SpeedOptimizedGenerator {
             "Generate ONLY a bulleted list of key features. No headers:\n\n{}",
             &context[..context.len().min(6000)]
         );
-        let features = self.call_api_simple(&features_prompt).await?;
+        let features = self.call_api_with_custom_context(&features_prompt, custom_prompt).await?;
         for line in features.lines() {
             if !line.trim().is_empty() {
                 file.write_all(line.as_bytes())?;
@@ -275,7 +315,7 @@ impl SpeedOptimizedGenerator {
             "Generate ONLY installation instructions. No headers:\n\n{}",
             &context[..context.len().min(4000)]
         );
-        let installation = self.call_api_simple(&install_prompt).await?;
+        let installation = self.call_api_with_custom_context(&install_prompt, custom_prompt).await?;
         for line in installation.lines() {
             if !line.trim().is_empty() {
                 file.write_all(line.as_bytes())?;
@@ -299,7 +339,7 @@ impl SpeedOptimizedGenerator {
             "Generate ONLY usage examples and basic commands. No headers:\n\n{}",
             &context[..context.len().min(5000)]
         );
-        let usage = self.call_api_simple(&usage_prompt).await?;
+        let usage = self.call_api_with_custom_context(&usage_prompt, custom_prompt).await?;
         for line in usage.lines() {
             if !line.trim().is_empty() {
                 file.write_all(line.as_bytes())?;
