@@ -1,6 +1,6 @@
 [package]
 name = "tldrs"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "README.md generator powered by LLMs and codebase analysis"
 repository = "https://github.com/pixperk/tldrs"
