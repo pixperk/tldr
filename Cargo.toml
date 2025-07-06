@@ -14,3 +14,4 @@ serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
 walkdir = "2.4"
 indicatif = "0.18.0"
+anyhow = "1.0"

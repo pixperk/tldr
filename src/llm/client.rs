@@ -1,6 +1,7 @@
 use reqwest::Client;
 use std::time::Duration;
 
+#[derive(Debug)]
 pub struct LlmClient {
     client: Client,
     api_key: String,

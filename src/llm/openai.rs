@@ -1,10 +1,11 @@
 use crate::llm::client::LlmClient;
-use crate::llm::prompt::SYSTEM_PROMPT;
 use serde_json::json;
 use std::sync::Arc;
 use tokio::time::Duration;
 use indicatif::{ProgressBar, ProgressStyle};
+use anyhow::Result;
 
+#[derive(Debug, Clone)]
 pub struct OpenAiGenerator {
     client: Arc<LlmClient>,
 }
@@ -19,6 +20,7 @@ impl OpenAiGenerator {
     pub async fn generate_readme_fast(
         &self,
         chunks: &[String],
+        custom_prompt: &str,
     ) -> Result<String, Box<dyn std::error::Error>> {
         let pb = ProgressBar::new_spinner();
         pb.set_style(
@@ -34,7 +36,7 @@ impl OpenAiGenerator {
         let context = self.build_smart_context(&filtered_chunks);
         
         pb.set_message("📝 Calling OpenAI API...");
-        let readme_content = self.call_openai_api(&context).await?;
+        let readme_content = self.call_openai_api(&context, custom_prompt).await?;
         
         pb.finish_with_message("✅ README generated successfully!");
         Ok(readme_content)
@@ -44,6 +46,7 @@ impl OpenAiGenerator {
         &self,
         chunks: &[String],
         output_path: &std::path::Path,
+        _custom_prompt: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
         use std::io::Write;
         
@@ -120,7 +123,47 @@ impl OpenAiGenerator {
         }
     }
 
-    async fn call_openai_api(&self, context: &str) -> Result<String, Box<dyn std::error::Error>> {
+    // Simple API call for streaming sections that still use the default system prompt
+    async fn call_openai_api_simple(&self, context: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let default_system_prompt = "You are a technical writing assistant. Generate high-quality, professional documentation based on the provided code context.";
+        
+        let response = self.client.client()
+            .post("https://api.openai.com/v1/chat/completions")
+            .header("Authorization", format!("Bearer {}", self.client.api_key()))
+            .header("Content-Type", "application/json")
+            .json(&json!({
+                "model": "gpt-4o",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": default_system_prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": context
+                    }
+                ],
+                "max_tokens": 1000,
+                "temperature": 0.7
+            }))
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let error_text = response.text().await?;
+            return Err(format!("OpenAI API error: {}", error_text).into());
+        }
+
+        let response_json: serde_json::Value = response.json().await?;
+        
+        if let Some(content) = response_json["choices"][0]["message"]["content"].as_str() {
+            Ok(content.trim().to_string())
+        } else {
+            Err("Invalid response format from OpenAI API".into())
+        }
+    }
+
+    async fn call_openai_api(&self, context: &str, custom_prompt: &str) -> Result<String, Box<dyn std::error::Error>> {
         let prompt = format!(
             "Analyze this codebase and generate a comprehensive README.md:\n\n{}",
             context
@@ -135,7 +178,7 @@ impl OpenAiGenerator {
                 "messages": [
                     {
                         "role": "system",
-                        "content": SYSTEM_PROMPT
+                        "content": custom_prompt
                     },
                     {
                         "role": "user",
@@ -179,7 +222,7 @@ impl OpenAiGenerator {
             "Generate ONLY a project title in markdown format (# Title). Be concise:\n\n{}",
             &context[..context.len().min(3000)]
         );
-        let title = self.call_openai_api(&title_prompt).await?;
+        let title = self.call_openai_api_simple(&title_prompt).await?;
         for line in title.lines() {
             file.write_all(line.as_bytes())?;
             file.write_all("\n".as_bytes())?;
@@ -197,7 +240,7 @@ impl OpenAiGenerator {
             "Generate ONLY a brief project description (2-3 sentences). No headers:\n\n{}",
             &context[..context.len().min(4000)]
         );
-        let description = self.call_openai_api(&desc_prompt).await?;
+        let description = self.call_openai_api_simple(&desc_prompt).await?;
         for sentence in description.split('.') {
             if !sentence.trim().is_empty() {
                 file.write_all(sentence.trim().as_bytes())?;
@@ -221,7 +264,7 @@ impl OpenAiGenerator {
             "Generate ONLY a bulleted list of key features. No headers:\n\n{}",
             &context[..context.len().min(6000)]
         );
-        let features = self.call_openai_api(&features_prompt).await?;
+        let features = self.call_openai_api_simple(&features_prompt).await?;
         for line in features.lines() {
             if !line.trim().is_empty() {
                 file.write_all(line.as_bytes())?;
@@ -245,7 +288,7 @@ impl OpenAiGenerator {
             "Generate ONLY installation instructions. No headers:\n\n{}",
             &context[..context.len().min(4000)]
         );
-        let installation = self.call_openai_api(&install_prompt).await?;
+        let installation = self.call_openai_api_simple(&install_prompt).await?;
         for line in installation.lines() {
             if !line.trim().is_empty() {
                 file.write_all(line.as_bytes())?;
@@ -269,7 +312,7 @@ impl OpenAiGenerator {
             "Generate ONLY usage examples and basic commands. No headers:\n\n{}",
             &context[..context.len().min(5000)]
         );
-        let usage = self.call_openai_api(&usage_prompt).await?;
+        let usage = self.call_openai_api_simple(&usage_prompt).await?;
         for line in usage.lines() {
             if !line.trim().is_empty() {
                 file.write_all(line.as_bytes())?;

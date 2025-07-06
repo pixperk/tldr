@@ -27,6 +27,18 @@ pub enum Commands {
         /// Use streaming mode to write README sections as they are generated
         #[arg(short, long)]
         streaming: bool,
+        
+        /// Custom prompt for README generation (overrides default system prompt)
+        #[arg(long)]
+        prompt: Option<String>,
+        
+        /// Path to a file containing custom prompt (overrides default system prompt)
+        #[arg(long)]
+        prompt_file: Option<PathBuf>,
+        
+        /// Additional instructions to append to the prompt (works with default or custom prompts)
+        #[arg(long)]
+        instructions: Option<String>,
     }
 }
 
