@@ -59,7 +59,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
         );
 
         let response = self.client.client()
-            .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")
+            .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent")
             .query(&[("key", self.client.api_key())])
             .header("Content-Type", "application/json")
             .json(&json!({
