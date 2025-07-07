@@ -28,7 +28,7 @@ impl LlmApiClient for OpenAiGenerator {
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are a technical writing assistant. Follow the provided context and guidelines while completing the specific task."
+                        "content": "You are a technical writing assistant. Generate only raw markdown content without wrapping it in code blocks. Do not include opinions or subjective commentary. Follow the provided context and guidelines while completing the specific task."
                     },
                     {
                         "role": "user",
@@ -49,7 +49,7 @@ impl LlmApiClient for OpenAiGenerator {
         let response_json: serde_json::Value = response.json().await?;
         
         if let Some(content) = response_json["choices"][0]["message"]["content"].as_str() {
-            Ok(content.trim().to_string())
+            Ok(clean_markdown_response(content))
         } else {
             Err("Invalid response format from OpenAI API".into())
         }
@@ -57,7 +57,7 @@ impl LlmApiClient for OpenAiGenerator {
 
     async fn call_main(&self, context: &str, custom_prompt: &str) -> Result<String, Box<dyn std::error::Error>> {
         let prompt = format!(
-            "Analyze this codebase and generate a comprehensive README.md:\n\n{}",
+            "Analyze this codebase and generate a comprehensive README.md. Output raw markdown content only, no code block wrappers:\n\n{}",
             context
         );
 
@@ -91,7 +91,7 @@ impl LlmApiClient for OpenAiGenerator {
         let response_json: serde_json::Value = response.json().await?;
         
         if let Some(content) = response_json["choices"][0]["message"]["content"].as_str() {
-            Ok(content.trim().to_string())
+            Ok(clean_markdown_response(content))
         } else {
             Err("Invalid response format from OpenAI API".into())
         }
@@ -169,4 +169,25 @@ impl OpenAiGenerator {
         
         Ok(())
     }
+}
+
+/// Clean markdown code blocks from AI responses
+fn clean_markdown_response(content: &str) -> String {
+    let mut cleaned = content.trim();
+    
+    // Remove opening markdown code block
+    if cleaned.starts_with("```markdown") {
+        cleaned = &cleaned[11..];
+    } else if cleaned.starts_with("```md") {
+        cleaned = &cleaned[5..];
+    } else if cleaned.starts_with("```") {
+        cleaned = &cleaned[3..];
+    }
+    
+    // Remove closing markdown code block
+    if cleaned.ends_with("```") {
+        cleaned = &cleaned[..cleaned.len()-3];
+    }
+    
+    cleaned.trim().to_string()
 }

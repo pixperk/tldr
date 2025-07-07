@@ -45,7 +45,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
         let response_json: serde_json::Value = response.json().await?;
         
         if let Some(content) = response_json["candidates"][0]["content"]["parts"][0]["text"].as_str() {
-            Ok(content.trim().to_string())
+            Ok(clean_markdown_response(content))
         } else {
             Err("Invalid response format from Gemini API".into())
         }
@@ -53,7 +53,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
 
     async fn call_main(&self, context: &str, custom_prompt: &str) -> Result<String, Box<dyn std::error::Error>> {
         let prompt = format!(
-            "{}\n\nAnalyze this codebase and generate a comprehensive README.md:\n\n{}",
+            "{}\n\nAnalyze this codebase and generate a comprehensive README.md. Output raw markdown content only, no code block wrappers:\n\n{}",
             custom_prompt,
             context
         );
@@ -84,7 +84,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
         let response_json: serde_json::Value = response.json().await?;
         
         if let Some(content) = response_json["candidates"][0]["content"]["parts"][0]["text"].as_str() {
-            Ok(content.trim().to_string())
+            Ok(clean_markdown_response(content))
         } else {
             Err("Invalid response format from Gemini API".into())
         }
@@ -162,4 +162,25 @@ impl SpeedOptimizedGenerator {
         
         Ok(())
     }
+}
+
+/// Clean markdown code blocks from AI responses
+fn clean_markdown_response(content: &str) -> String {
+    let mut cleaned = content.trim();
+    
+    // Remove opening markdown code block
+    if cleaned.starts_with("```markdown") {
+        cleaned = &cleaned[11..];
+    } else if cleaned.starts_with("```md") {
+        cleaned = &cleaned[5..];
+    } else if cleaned.starts_with("```") {
+        cleaned = &cleaned[3..];
+    }
+    
+    // Remove closing markdown code block
+    if cleaned.ends_with("```") {
+        cleaned = &cleaned[..cleaned.len()-3];
+    }
+    
+    cleaned.trim().to_string()
 }
