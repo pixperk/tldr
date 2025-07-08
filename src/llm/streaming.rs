@@ -20,6 +20,26 @@ impl StreamingSectionGenerator {
         Self
     }
 
+    /// Clean markdown code block wrapping from LLM responses
+    fn clean_markdown_wrapping(content: &str) -> String {
+        let trimmed = content.trim();
+        
+        // Remove markdown code block wrapping if present
+        if trimmed.starts_with("```markdown") && trimmed.ends_with("```") {
+            // Extract content between ```markdown and closing ```
+            let content_start = trimmed.find('\n').unwrap_or(11) + 1; // Skip "```markdown\n"
+            let content_end = trimmed.rfind("```").unwrap_or(trimmed.len());
+            trimmed[content_start..content_end].trim().to_string()
+        } else if trimmed.starts_with("```") && trimmed.ends_with("```") {
+            // Handle generic code blocks
+            let content_start = trimmed.find('\n').unwrap_or(3) + 1; // Skip "```\n"
+            let content_end = trimmed.rfind("```").unwrap_or(trimmed.len());
+            trimmed[content_start..content_end].trim().to_string()
+        } else {
+            content.to_string()
+        }
+    }
+
     /// Generate all sections incrementally using the provided API client
     pub async fn generate_sections_incrementally<T: LlmApiClient>(
         &self,
@@ -58,8 +78,9 @@ impl StreamingSectionGenerator {
         );
         
         let title = api_client.call_with_custom_context(&title_prompt, custom_prompt).await?;
+        let cleaned_title = Self::clean_markdown_wrapping(&title);
         
-        for line in title.lines() {
+        for line in cleaned_title.lines() {
             file.write_all(line.as_bytes())?;
             file.write_all("\n".as_bytes())?;
             file.flush()?;
@@ -89,8 +110,9 @@ impl StreamingSectionGenerator {
         );
         
         let description = api_client.call_with_custom_context(&desc_prompt, custom_prompt).await?;
+        let cleaned_description = Self::clean_markdown_wrapping(&description);
         
-        for line in description.lines() {
+        for line in cleaned_description.lines() {
             file.write_all(line.as_bytes())?;
             file.write_all("\n".as_bytes())?;
             file.flush()?;
@@ -120,8 +142,9 @@ impl StreamingSectionGenerator {
         );
         
         let features = api_client.call_with_custom_context(&features_prompt, custom_prompt).await?;
+        let cleaned_features = Self::clean_markdown_wrapping(&features);
         
-        for line in features.lines() {
+        for line in cleaned_features.lines() {
             file.write_all(line.as_bytes())?;
             file.write_all("\n".as_bytes())?;
             file.flush()?;
@@ -151,8 +174,9 @@ impl StreamingSectionGenerator {
         );
         
         let installation = api_client.call_with_custom_context(&install_prompt, custom_prompt).await?;
+        let cleaned_installation = Self::clean_markdown_wrapping(&installation);
         
-        for line in installation.lines() {
+        for line in cleaned_installation.lines() {
             file.write_all(line.as_bytes())?;
             file.write_all("\n".as_bytes())?;
             file.flush()?;
@@ -182,8 +206,9 @@ impl StreamingSectionGenerator {
         );
         
         let usage = api_client.call_with_custom_context(&usage_prompt, custom_prompt).await?;
+        let cleaned_usage = Self::clean_markdown_wrapping(&usage);
         
-        for line in usage.lines() {
+        for line in cleaned_usage.lines() {
             file.write_all(line.as_bytes())?;
             file.write_all("\n".as_bytes())?;
             file.flush()?;
@@ -235,6 +260,9 @@ impl StreamingSectionGenerator {
                 || chunk_lower.contains("lib.")
                 || chunk_lower.contains("mod.rs")
                 || chunk_lower.contains("src/")
+                || chunk_lower.contains("README.md")
+                || chunk_lower.contains("CHANGELOG.md")
+                || chunk_lower.contains("CONTRIBUTING.md")
                 || chunk.lines().count() > 5 {
                 filtered.push(chunk.clone());
             }

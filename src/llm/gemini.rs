@@ -20,7 +20,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
         );
 
         let response = self.client.client()
-            .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")
+            .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent")
             .query(&[("key", self.client.api_key())])
             .header("Content-Type", "application/json")
             .json(&json!({
@@ -45,7 +45,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
         let response_json: serde_json::Value = response.json().await?;
         
         if let Some(content) = response_json["candidates"][0]["content"]["parts"][0]["text"].as_str() {
-            Ok(content.trim().to_string())
+            Ok(clean_markdown_response(content))
         } else {
             Err("Invalid response format from Gemini API".into())
         }
@@ -59,7 +59,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
         );
 
         let response = self.client.client()
-            .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent")
+            .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")
             .query(&[("key", self.client.api_key())])
             .header("Content-Type", "application/json")
             .json(&json!({
@@ -84,7 +84,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
         let response_json: serde_json::Value = response.json().await?;
         
         if let Some(content) = response_json["candidates"][0]["content"]["parts"][0]["text"].as_str() {
-            Ok(content.trim().to_string())
+            Ok(clean_markdown_response(content))
         } else {
             Err("Invalid response format from Gemini API".into())
         }
@@ -162,4 +162,25 @@ impl SpeedOptimizedGenerator {
         
         Ok(())
     }
+}
+
+/// Clean markdown code blocks from AI responses
+fn clean_markdown_response(content: &str) -> String {
+    let mut cleaned = content.trim();
+    
+    // Remove opening markdown code block
+    if cleaned.starts_with("```markdown") {
+        cleaned = &cleaned[11..];
+    } else if cleaned.starts_with("```md") {
+        cleaned = &cleaned[5..];
+    } else if cleaned.starts_with("```") {
+        cleaned = &cleaned[3..];
+    }
+    
+    // Remove closing markdown code block
+    if cleaned.ends_with("```") {
+        cleaned = &cleaned[..cleaned.len()-3];
+    }
+    
+    cleaned.trim().to_string()
 }
