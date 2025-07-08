@@ -3,6 +3,27 @@ use std::io::Write;
 use indicatif::ProgressBar;
 use anyhow::Result;
 
+/// Clean markdown code blocks from AI responses
+fn clean_markdown_response(content: &str) -> String {
+    let mut cleaned = content.trim();
+    
+    // Remove opening markdown code block
+    if cleaned.starts_with("```markdown") {
+        cleaned = &cleaned[11..];
+    } else if cleaned.starts_with("```md") {
+        cleaned = &cleaned[5..];
+    } else if cleaned.starts_with("```") {
+        cleaned = &cleaned[3..];
+    }
+    
+    // Remove closing markdown code block
+    if cleaned.ends_with("```") {
+        cleaned = &cleaned[..cleaned.len()-3];
+    }
+    
+    cleaned.trim().to_string()
+}
+
 /// Common interface for LLM API calls with custom context
 pub trait LlmApiClient {
     /// Make an API call with custom prompt context for streaming sections
@@ -73,7 +94,7 @@ impl StreamingSectionGenerator {
         println!("🔄 Generating project title...");
         
         let title_prompt = format!(
-            "Generate ONLY a project title in markdown format (# Title). Be concise:\n\n{}",
+            "Generate ONLY a project title in markdown format (# Title). Be factual and concise, no opinions:\n\n{}",
             &context[..context.len().min(3000)]
         );
         
@@ -105,7 +126,7 @@ impl StreamingSectionGenerator {
         println!("🔄 Generating description...");
         
         let desc_prompt = format!(
-            "Generate ONLY a brief project description (2-3 sentences). Be compelling:\n\n{}",
+            "Generate ONLY a brief project description (2-3 sentences). Be factual and objective, no opinions:\n\n{}",
             &context[..context.len().min(3000)]
         );
         
@@ -137,7 +158,7 @@ impl StreamingSectionGenerator {
         println!("🔄 Generating features...");
         
         let features_prompt = format!(
-            "Generate a ## Features section with bullet points of key capabilities:\n\n{}",
+            "Generate a ## Features section with bullet points of key capabilities. Be factual, no opinions:\n\n{}",
             &context[..context.len().min(4000)]
         );
         
@@ -169,7 +190,7 @@ impl StreamingSectionGenerator {
         println!("🔄 Generating installation guide...");
         
         let install_prompt = format!(
-            "Generate a ## Installation section with clear setup steps:\n\n{}",
+            "Generate a ## Installation section with clear setup steps. Be factual and direct:\n\n{}",
             &context[..context.len().min(4000)]
         );
         
@@ -201,7 +222,7 @@ impl StreamingSectionGenerator {
         println!("🔄 Generating usage examples...");
         
         let usage_prompt = format!(
-            "Generate a ## Usage section with practical examples and command-line usage:\n\n{}",
+            "Generate a ## Usage section with practical examples and command-line usage. Be factual and clear:\n\n{}",
             &context[..context.len().min(4000)]
         );
         

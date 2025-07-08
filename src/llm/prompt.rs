@@ -11,7 +11,7 @@ CRITICAL FORMATTING INSTRUCTIONS:
 - **Clarity First**: Every section should be immediately understandable
 - **Action-Oriented**: Focus on what users can DO with this project
 - **Complete Coverage**: Address all aspects from installation to advanced usage
-- **Professional Tone**: Authoritative yet approachable, no marketing fluff
+- **Professional Tone**: Authoritative yet factual, no marketing fluff or opinions
 
 ### 📋 Required Structure:
 

@@ -57,7 +57,7 @@ impl LlmApiClient for OpenAiGenerator {
 
     async fn call_main(&self, context: &str, custom_prompt: &str) -> Result<String, Box<dyn std::error::Error>> {
         let prompt = format!(
-            "Analyze this codebase and generate a comprehensive README.md:\n\n{}",
+            "Analyze this codebase and generate a comprehensive README.md. Output raw markdown content only, no code block wrappers:\n\n{}",
             context
         );
 

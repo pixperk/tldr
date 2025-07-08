@@ -1278,7 +1278,11 @@ dependencies = [
 
 [[package]]
 name = "tldrs"
+<<<<<<< HEAD
 version = "0.1.3"
+=======
+version = "0.1.2"
+>>>>>>> c992f1b474b290166e67587a7939e5d6dfe3afb0
 dependencies = [
  "anyhow",
  "clap",
