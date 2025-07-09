@@ -1,5 +1,13 @@
 # 📝 tldrs
 
+<div align="center">
+  <img src="assets/logo.png" alt="tldrs Logo" width="200" />
+  
+  <br/>
+  
+  <img src="assets/thumbnail.png" alt="tldrs Demo" width="600" />
+</div>
+
 > **TL;DR for your codebase** - Automatically generate comprehensive README.md files using AI
 
 [![Crates.io](https://img.shields.io/crates/v/tldrs)](https://crates.io/crates/tldrs)

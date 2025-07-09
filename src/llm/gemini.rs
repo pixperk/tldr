@@ -53,7 +53,7 @@ impl LlmApiClient for SpeedOptimizedGenerator {
 
     async fn call_main(&self, context: &str, custom_prompt: &str) -> Result<String, Box<dyn std::error::Error>> {
         let prompt = format!(
-            "{}\n\nAnalyze this codebase and generate a comprehensive README.md. Output raw markdown content only, no code block wrappers:\n\n{}",
+            "{}\n\nAnalyze this codebase and generate a comprehensive README.md:\n\n{}",
             custom_prompt,
             context
         );
